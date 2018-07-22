@@ -11,7 +11,7 @@ cprequire_test(["inline:com-chilipeppr-workspace-pyroavr-tinyg"], function(ws) {
      */
     var loadFlashMsg = function() {
         chilipeppr.load("#com-chilipeppr-widget-flash-instance",
-            "http://fiddle.jshell.net/chilipeppr/90698kax/show/light/",
+            "http://raw.githubusercontent.com/chilipeppr/element-flash/master/auto-generated-widget.html",
             function() {
                 console.log("mycallback got called after loading flash msg module");
                 cprequire(["inline:com-chilipeppr-elem-flashmsg"], function(fm) {
@@ -223,6 +223,240 @@ cpdefine("inline:com-chilipeppr-workspace-pyroavr-tinyg", ["chilipeppr_ready"], 
 
         loadWidgets: function(callback) {
             
+            // create a workspace object reference to this so inside the anonymous functions below
+            // the workspace can be referred to
+            var wsObj = this;
+            
+            // Load XBox Controller Widget
+            chilipeppr.load(
+              "#com-chilipeppr-ws-xbox",
+              "http://raw.githubusercontent.com/chilipeppr/widget-xbox/master/auto-generated-widget.html",
+              function() {
+                // Callback after widget loaded into #myDivWidgetXbox
+                // Now use require.js to get reference to instantiated widget
+                cprequire(
+                  ["inline:com-chilipeppr-widget-xbox"], // the id you gave your widget
+                  function(myObjWidgetXbox) {
+                    // Callback that is passed reference to the newly loaded widget
+                    console.log("Widget / Xbox just got loaded.", myObjWidgetXbox);
+                    myObjWidgetXbox.init();
+                    
+                    // setup toggle button
+                    var zwBtn = $('#com-chilipeppr-ws-menu .xbox-button');
+                    var zwDiv = $('#com-chilipeppr-ws-xbox');
+                    zwBtn.click(function() {
+                        if (zwDiv.hasClass("hidden")) {
+                            // unhide
+                            zwDiv.removeClass("hidden");
+                            zwBtn.addClass("active");
+                        }
+                        else {
+                            zwDiv.addClass("hidden");
+                            zwBtn.removeClass("active");
+                        }
+                        $(window).trigger('resize');
+                    });
+                  }
+                );
+              }
+            );
+
+            this.font2gcodeObj = function() {
+                return {
+                    name: "font2gcode",
+                    url: "http://raw.githubusercontent.com/chilipeppr/widget-font2gcode/master/auto-generated-widget.html",
+                    id: "com-zipwhip-widget-font2gcode",
+                    btn: $('#com-chilipeppr-ws-menu .font2gcode-button'),
+                    div: $('#com-chilipeppr-ws-font2gcode'),
+                    instance: null,
+                    init: function() {
+                        this.btn.click(this.toggle.bind(this));
+                        
+                        // do NOT dynamically load this one since it has a pubsub that's key to get called
+                        // and in future may register for drag/drop events for .txt files  
+                        this.load();
+                        
+                        // we need to subscribe to the /didDrop signal of this widget so we know to show it
+                        //chilipeppr.subscribe("/" + this.id + "/didDrop", this, this.show);
+                        console.log("done instantiating " + this.name + " add-on widget");
+                    },
+                    load: function(callback) {
+                        var that = this;
+                        chilipeppr.load(
+                          this.div.prop("id"),
+                          this.url,
+                          function() {
+                            // Callback after widget loaded into #myDivWidgetRecvtext
+                            // Now use require.js to get reference to instantiated widget
+                            cprequire(
+                              ["inline:" + that.id], // the id you gave your widget
+                              function(myObjWidget) {
+                                // Callback that is passed reference to the newly loaded widget
+                                console.log(that.name + " just got loaded.", myObjWidget);
+                                //myObjWidget.init(myObjWidget.activate.bind(myObjWidget));
+                                myObjWidget.init();
+                                //myObjWidget.activate();
+                                that.instance = myObjWidget;
+                                if (callback) callback(that.instance);
+                              }
+                            );
+                          }
+                        );
+                    },
+                    toggle: function() {
+                        if (this.div.hasClass("hidden")) {
+                            // unhide
+                            this.show();
+                        }
+                        else {
+                            this.hide();
+                        }
+                    },
+                    show: function() {
+                        this.div.removeClass("hidden");
+                        this.btn.addClass("active");
+    
+                        console.log("got show for " + this.name + ", this:", this, "wsObj:", wsObj);
+                        
+                        // see if instantiated already
+                        // if so, just activate
+                        if (this.instance != null) {
+                            console.log("activating " + this.name + " instead of re-instantiating cuz already created");
+                            this.instance.activate();
+                            //if (callback) callback(this.instance);
+                        }
+                        else {
+                            // otherwise, dynamic load
+                            console.log(this.name + " appears to not be instantiated, let us load it from scratch")
+                            
+                        }
+                        $(window).trigger('resize');
+                    },
+                    hide: function() {
+                        this.div.addClass("hidden");
+                        this.btn.removeClass("active");
+                        
+                        console.log("got hide for " + this.name + ". this:", this, "wsObj:", wsObj);
+                        
+                        if (this.instance != null) {
+                            this.instance.unactivate();
+                        }
+                        $(window).trigger('resize');
+                    }
+                };
+            }();
+            this.font2gcodeObj.init();
+            //End Font2Gcode
+
+            this.svg2gcodeObj = function() {
+                return {
+                    name: "svg2gcode",
+                    url: "http://raw.githubusercontent.com/chilipeppr/widget-svg2gcode/master/auto-generated-widget.html",
+                    id: "com-zipwhip-widget-svg2gcode",
+                    btn: $('#com-chilipeppr-ws-menu .svg2gcode-button'),
+                    div: $('#com-chilipeppr-ws-svg2gcode'),
+                    instance: null,
+                    init: function() {
+                        this.btn.click(this.toggle.bind(this));
+                        
+                        // do NOT dynamically load this one since it registers for drag/drop events for .svg files  
+                        this.load();
+                        
+                        // we need to subscribe to the /didDrop signal of this widget so we know to show it
+                        chilipeppr.subscribe("/" + this.id + "/didDrop", this, this.show);
+                        console.log("done instantiating " + this.name + " add-on widget");
+                    },
+                    load: function(callback) {
+                        var that = this;
+                        chilipeppr.load(
+                          this.div.prop("id"),
+                          this.url,
+                          function() {
+                            // Callback after widget loaded into #myDivWidgetRecvtext
+                            // Now use require.js to get reference to instantiated widget
+                            cprequire(
+                              ["inline:" + that.id], // the id you gave your widget
+                              function(myObjWidget) {
+                                // Callback that is passed reference to the newly loaded widget
+                                console.log(that.name + " just got loaded.", myObjWidget);
+                                //myObjWidget.init(myObjWidget.activate.bind(myObjWidget));
+                                myObjWidget.init();
+                                //myObjWidget.activate();
+                                that.instance = myObjWidget;
+                                if (callback) callback(that.instance);
+                              }
+                            );
+                          }
+                        );
+                    },
+                    toggle: function() {
+                        if (this.div.hasClass("hidden")) {
+                            // unhide
+                            this.show();
+                        }
+                        else {
+                            this.hide();
+                        }
+                    },
+                    show: function() {
+                        this.div.removeClass("hidden");
+                        this.btn.addClass("active");
+    
+                        console.log("got show for " + this.name + ", this:", this, "wsObj:", wsObj);
+                        
+                        // see if instantiated already
+                        // if so, just activate
+                        if (this.instance != null) {
+                            console.log("activating " + this.name + " instead of re-instantiating cuz already created");
+                            this.instance.activate();
+                            //if (callback) callback(this.instance);
+                        }
+                        else {
+                            // otherwise, dynamic load
+                            console.log(this.name + " appears to not be instantiated, let us load it from scratch")
+                            
+                        }
+                        $(window).trigger('resize');
+                    },
+                    hide: function() {
+                        this.div.addClass("hidden");
+                        this.btn.removeClass("active");
+                        
+                        console.log("got hide for " + this.name + ". this:", this, "wsObj:", wsObj);
+                        
+                        if (this.instance != null) {
+                            this.instance.unactivate();
+                        }
+                        $(window).trigger('resize');
+                    }
+                };
+            }();
+            this.svg2gcodeObj.init();
+            //End SVG2Gcode
+            
+            // Inject the Font2Gcode widget
+            /*
+            $('<div class="zhigh" id="com-chilipeppr-ws-font2gcode"></div>')
+                .insertAfter('#com-chilipeppr-ws-zipwhip-recvtext');
+
+            chilipeppr.load(
+              "#com-chilipeppr-ws-font2gcode",
+              "http://raw.githubusercontent.com/chilipeppr/widget-font2gcode/master/auto-generated-widget.html",
+              function() {
+                // Callback after widget loaded into #myDivComZipwhipWidgetFont2gcode
+                // Now use require.js to get reference to instantiated widget
+                cprequire(
+                  ["inline:com-zipwhip-widget-font2gcode"], // the id you gave your widget
+                  function(myObjComZipwhipWidgetFont2gcode) {
+                    // Callback that is passed reference to the newly loaded widget
+                    console.log("Widget / Font2Gcode just got loaded.", myObjComZipwhipWidgetFont2gcode);
+                    //myObjComZipwhipWidgetFont2gcode.init();
+                  }
+                );
+              }
+            );
+            */
+
             // Zipwhip texting
             // com-chilipeppr-ws-zipwhip
             // chilipeppr.load(
@@ -253,6 +487,7 @@ cpdefine("inline:com-chilipeppr-workspace-pyroavr-tinyg", ["chilipeppr_ready"], 
             // Zipwhip Recieve Text widget
             // Dynamically load the Zipwhip Recieve Text widget, i.e. wait til user clicks on the button
             // first time.
+<<<<<<< HEAD
             // this.zipwhipRecvTextObj = {
             //     zipwhipRecvTextBtn: null,
             //     zipwhipRecvTextDiv: null,
@@ -320,6 +555,81 @@ cpdefine("inline:com-chilipeppr-workspace-pyroavr-tinyg", ["chilipeppr_ready"], 
             //     },
             // };
             // this.zipwhipRecvTextObj.init();
+=======
+            wsObj.zipwhipRecvTextObj = {
+                zipwhipRecvTextBtn: null,
+                zipwhipRecvTextDiv: null,
+                zipwhipRecvTextInstance: null,
+                init: function() {
+                    this.zipwhipRecvTextBtn = $('#com-chilipeppr-ws-menu .zipwhip-recvtext-button');
+                    this.zipwhipRecvTextDiv = $('#com-chilipeppr-ws-zipwhip-recvtext');
+                    this.setupBtn();
+                    console.log("done instantiating zipwhipRecvText add-on widget");
+                },
+                setupBtn: function() {
+                    this.zipwhipRecvTextBtn.click(this.togglezipwhipRecvText.bind(this));
+                },
+                togglezipwhipRecvText: function() {
+                    if (this.zipwhipRecvTextDiv.hasClass("hidden")) {
+                        // unhide
+                        this.showzipwhipRecvText();
+                    }
+                    else {
+                        this.hidezipwhipRecvText();
+                    }
+                },
+                showzipwhipRecvText: function(callback) {
+                    this.zipwhipRecvTextDiv.removeClass("hidden");
+                    this.zipwhipRecvTextBtn.addClass("active");
+
+                    console.log("got showzipwhipRecvText. this:", this, "wsObj:", wsObj);
+                    
+                    // see if instantiated already
+                    // if so, just activate
+                    if (this.zipwhipRecvTextInstance != null) {
+                        console.log("activating zipwhip recv text instead of re-instantiating cuz already created")
+                        this.zipwhipRecvTextInstance.activateWidget();
+                        if (callback) callback(this.zipwhipRecvTextInstance);
+                    }
+                    else {
+                        // otherwise, dynamic load
+                        console.log("zipwhip recv text appears to not be instantiated, let us load it from scratch")
+                        var that = this;
+                        chilipeppr.load(
+                          this.zipwhipRecvTextDiv.prop("id"),
+                          "http://raw.githubusercontent.com/chilipeppr/widget-recvtext/master/auto-generated-widget.html",
+                          function() {
+                            // Callback after widget loaded into #myDivWidgetRecvtext
+                            // Now use require.js to get reference to instantiated widget
+                            cprequire(
+                              ["inline:com-chilipeppr-widget-recvtext"], // the id you gave your widget
+                              function(myObjWidgetRecvtext) {
+                                // Callback that is passed reference to the newly loaded widget
+                                console.log("Widget / Zipwhip Receive Text just got loaded.", myObjWidgetRecvtext);
+                                myObjWidgetRecvtext.init();
+                                that.zipwhipRecvTextInstance = myObjWidgetRecvtext;
+                                if (callback) callback(that.zipwhipRecvTextInstance);
+                              }
+                            );
+                          }
+                        );
+                    }
+                    $(window).trigger('resize');
+                },
+                hidezipwhipRecvText: function() {
+                    this.zipwhipRecvTextDiv.addClass("hidden");
+                    this.zipwhipRecvTextBtn.removeClass("active");
+                    
+                    console.log("got hidezipwhipRecvText. this:", this, "wsObj:", wsObj);
+                    
+                    if (this.zipwhipRecvTextInstance != null) {
+                        this.zipwhipRecvTextInstance.unactivateWidget();
+                    }
+                    $(window).trigger('resize');
+                },
+            };
+            wsObj.zipwhipRecvTextObj.init();
+>>>>>>> 83a133ce3a48d695399a68882fdfb4ea35e9df9b
             //End Zipwhip Receive Text
             
             // Auto-Leveller
@@ -411,6 +721,7 @@ cpdefine("inline:com-chilipeppr-workspace-pyroavr-tinyg", ["chilipeppr_ready"], 
                 
             
             // Laser Solder
+<<<<<<< HEAD
             // chilipeppr.load(
             //     "#com-chilipeppr-ws-lasersolder",
             //     "http://fiddle.jshell.net/chilipeppr/xuu785yz/show/light/",
@@ -439,6 +750,38 @@ cpdefine("inline:com-chilipeppr-workspace-pyroavr-tinyg", ["chilipeppr_ready"], 
             //         });
             //     }); //End Laser Solder
                 
+=======
+            // com-chilipeppr-ws-jscut
+            /*
+            chilipeppr.load(
+                "#com-chilipeppr-ws-lasersolder",
+                "http://fiddle.jshell.net/chilipeppr/xuu785yz/show/light/",
+                function() {
+                    require(["inline:com-chilipeppr-widget-lasersolder"], function(ls) {
+                        ls.init();
+                        ls.unactivateWidget();
+                        // setup toggle button
+                        var alBtn = $('#com-chilipeppr-ws-menu .lasersolder-button');
+                        var alDiv = $('#com-chilipeppr-ws-lasersolder');
+                        alBtn.click(function() {
+                            if (alDiv.hasClass("hidden")) {
+                                // unhide
+                                alDiv.removeClass("hidden");
+                                alBtn.addClass("active");
+                                ls.activateWidget();
+                            }
+                            else {
+                                alDiv.addClass("hidden");
+                                alBtn.removeClass("active");
+                                ls.unactivateWidget();
+                            }
+                            $(window).trigger('resize');
+
+                        });
+                    });
+                }); //End Laser Solder
+                */
+>>>>>>> 83a133ce3a48d695399a68882fdfb4ea35e9df9b
 
             // Eagle BRD Import
             // com-chilipeppr-widget-eagle
@@ -761,7 +1104,7 @@ cpdefine("inline:com-chilipeppr-workspace-pyroavr-tinyg", ["chilipeppr_ready"], 
                         var that = this;
                         chilipeppr.load(
                             "#com-chilipeppr-ws-touchplate",
-                            "http://raw.githubusercontent.com/PyroAVR/widget-super-touchplate/tabs/auto-generated-widget.html",
+                            "http://raw.githubusercontent.com/PyroAVR/widget-super-touchplate/modal/auto-generated-widget.html",
                             function() {
                                 require(["inline:com-chilipeppr-widget-super-touchplate"], function(touchPlate) {
                                     that.touchPlateInstance = touchPlate;
@@ -788,6 +1131,75 @@ cpdefine("inline:com-chilipeppr-workspace-pyroavr-tinyg", ["chilipeppr_ready"], 
             this.touchPlateObj.init();
             //End Touch Plate
 
+            // Super Touch Plate
+            // http://raw.githubusercontent.com/PyroAVR/widget-super-touchplate/master/auto-generated-widget.html
+            // Dynamically load, i.e. wait til user clicks on the button first time.
+            this.superTouchPlateObj = function() {
+                return {
+                superTouchPlateBtn: null,
+                superTouchPlateDiv: null,
+                superTouchPlateInstance: null,
+                init: function() {
+                    this.superTouchPlateBtn = $('#com-chilipeppr-ws-menu .superTouchplate-button');
+                    this.superTouchPlateDiv = $('#com-chilipeppr-ws-superTouchplate');
+                    this.setupBtn();
+                    console.log("done instantiating superTouchPlate add-on widget");
+                },
+                setupBtn: function() {
+                    this.superTouchPlateBtn.click(this.togglesuperTouchPlate.bind(this));
+                },
+                togglesuperTouchPlate: function() {
+                    if (this.superTouchPlateDiv.hasClass("hidden")) {
+                        // unhide
+                        this.showsuperTouchPlate();
+                    }
+                    else {
+                        this.hidesuperTouchPlate();
+                    }
+                },
+                showsuperTouchPlate: function(callback) {
+                    this.superTouchPlateDiv.removeClass("hidden");
+                    this.superTouchPlateBtn.addClass("active");
+
+                    // see if instantiated already
+                    // if so, just activate
+                    if (this.superTouchPlateInstance != null) {
+                        this.superTouchPlateInstance.activateWidget();
+                        if (callback) callback();
+                    }
+                    else {
+                        // otherwise, dynamic load
+                        var that = this;
+                        chilipeppr.load(
+                            "#com-chilipeppr-ws-superTouchplate",
+                            "http://raw.githubusercontent.com/PyroAVR/widget-super-touchplate/master/auto-generated-widget.html",
+                            // "http://raw.githubusercontent.com/PyroAVR/widget-super-touchplate/tabs/auto-generated-widget.html",
+                            function() {
+                                require(["inline:com-chilipeppr-widget-super-touchplate"], function(superTouchPlate) {
+                                    that.superTouchPlateInstance = superTouchPlate;
+                                    console.log("superTouchPlate instantiated. superTouchPlateInstance:", that.superTouchPlateInstance);
+                                    that.superTouchPlateInstance.init();
+                                    //eagleInstance.activateWidget();
+                                    if (callback) callback();
+                                });
+                            }
+                        );
+                    }
+                    $(window).trigger('resize');
+                },
+                hidesuperTouchPlate: function() {
+                    this.superTouchPlateDiv.addClass("hidden");
+                    this.superTouchPlateBtn.removeClass("active");
+                    if (this.superTouchPlateInstance != null) {
+                        this.superTouchPlateInstance.unactivateWidget();
+                    }
+                    $(window).trigger('resize');
+                },
+                }
+            }();
+            this.superTouchPlateObj.init();
+            //End Super Touch Plate
+            
             // Arduino / Atmel Firmware Programmer
             // FIDDLE http://jsfiddle.net/chilipeppr/qcduvhkh/11/
             // chilipeppr.load(
@@ -982,6 +1394,83 @@ cpdefine("inline:com-chilipeppr-workspace-pyroavr-tinyg", ["chilipeppr_ready"], 
                 }
             ); //End TinyG
 
+            // Cayenn Widget
+            chilipeppr.load(
+              "#com-chilipeppr-ws-cayenn",
+              "http://raw.githubusercontent.com/chilipeppr/widget-cayenn/master/auto-generated-widget.html",
+              function() {
+                // Callback after widget loaded into #myDivWidgetCayenn
+                // Now use require.js to get reference to instantiated widget
+                cprequire(
+                  ["inline:com-chilipeppr-widget-cayenn"], // the id you gave your widget
+                  function(myObjWidgetCayenn) {
+                    // Callback that is passed reference to the newly loaded widget
+                    console.log("Widget / Cayenn just got loaded.", myObjWidgetCayenn);
+                    myObjWidgetCayenn.init();
+                    
+                    // this widget has a lot of modals that pop up whenever, so we need to make sure the parent div is
+                    // not hidden. instead we'll hide the exact widget because the modals are outside the div of the widget
+                    $('#com-chilipeppr-ws-cayenn').removeClass("hidden");
+                    
+                    var btn = $('#com-chilipeppr-ws-menu .cayenn-button');
+                    var div = $('#com-chilipeppr-widget-cayenn');
+                    div.addClass("hidden");
+                    btn.click(function() {
+                        if (div.hasClass("hidden")) {
+                            // show widget
+                            div.removeClass("hidden");
+                            btn.addClass("active");
+                        } else {
+                            // hide widget
+                            div.addClass("hidden");
+                            btn.removeClass("active");
+                        }
+                        setTimeout(function() {
+                            $(window).trigger('resize');
+                        }, 200);
+                    });
+                    
+                  }
+                );
+              }
+            );
+            
+            // Frank Herrmann's Webcam Widget
+            chilipeppr.load(
+              "#com-chilipeppr-ws-webcam",
+              "http://raw.githubusercontent.com/xpix/widget-cam/master/auto-generated-widget.html",
+              function() {
+                // Callback after widget loaded into #myDivWidgetCam
+                // Now use require.js to get reference to instantiated widget
+                cprequire(
+                  ["inline:com-chilipeppr-widget-cam"], // the id you gave your widget
+                  function(myObjWidgetCam) {
+                    // Callback that is passed reference to the newly loaded widget
+                    console.log("Widget / Cam just got loaded.", myObjWidgetCam);
+                    myObjWidgetCam.init();
+                    
+                    var btn = $('#com-chilipeppr-ws-menu .webcam-button');
+                    var div = $('#com-chilipeppr-ws-webcam');
+                    div.addClass("hidden");
+                    btn.click(function() {
+                        if (div.hasClass("hidden")) {
+                            // show widget
+                            div.removeClass("hidden");
+                            btn.addClass("active");
+                        } else {
+                            // hide widget
+                            div.addClass("hidden");
+                            btn.removeClass("active");
+                        }
+                        setTimeout(function() {
+                            $(window).trigger('resize');
+                        }, 200);
+                    });
+                  }
+                );
+              }
+            );
+
             // WebRTC Client com-chilipeppr-webrtcclient
             /*
             chilipeppr.load(
@@ -996,6 +1485,27 @@ cpdefine("inline:com-chilipeppr-workspace-pyroavr-tinyg", ["chilipeppr_ready"], 
                     webrtcclient.init();
                 });
             }); //End WebRTC Client
+            */
+
+            /* For testing. Load RPM Sensor */
+            // com-chilipeppr-ws-rpmsensor
+            /*
+            chilipeppr.load(
+              "#com-chilipeppr-ws-rpmsensor",
+              "http://raw.githubusercontent.com/chilipeppr/widget-rpmsensor/master/auto-generated-widget.html",
+              function() {
+                // Callback after widget loaded into #myDivWidgetRpmsensor
+                // Now use require.js to get reference to instantiated widget
+                cprequire(
+                  ["inline:com-chilipeppr-widget-rpmsensor"], // the id you gave your widget
+                  function(myObjWidgetRpmsensor) {
+                    // Callback that is passed reference to the newly loaded widget
+                    console.log("Widget / Template just got loaded.", myObjWidgetRpmsensor);
+                    myObjWidgetRpmsensor.init();
+                  }
+                );
+              }
+            );
             */
 
         },
